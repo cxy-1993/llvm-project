@@ -350,7 +350,7 @@ void SideEffectOp::getEffects(
 
     // Check for a result to affect.
     if (effectElement.get("on_result"))
-      effects.emplace_back(effect, getResult(), resource);
+      effects.emplace_back(effect, getOperation()->getOpResults()[0], resource);
     else if (Attribute ref = effectElement.get("on_reference"))
       effects.emplace_back(effect, cast<SymbolRefAttr>(ref), resource);
     else
@@ -1027,7 +1027,7 @@ void ReadBufferOp::getEffects(
     SmallVectorImpl<SideEffects::EffectInstance<MemoryEffects::Effect>>
         &effects) {
   // The buffer operand is read.
-  effects.emplace_back(MemoryEffects::Read::get(), getBuffer(),
+  effects.emplace_back(MemoryEffects::Read::get(), getBufferMutable(),
                        SideEffects::DefaultResource::get());
   // The buffer contents are dumped.
   effects.emplace_back(MemoryEffects::Write::get(),
