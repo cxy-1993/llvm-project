@@ -14,6 +14,7 @@
 #include "mlir/Dialect/Func/Transforms/FuncConversions.h"
 #include "mlir/Dialect/Tensor/IR/Tensor.h"
 #include "mlir/IR/Matchers.h"
+#include "mlir/IR/ProgramPoint.h"
 #include "mlir/Pass/Pass.h"
 #include "mlir/Transforms/DialectConversion.h"
 #include "mlir/Transforms/FoldUtils.h"
@@ -341,7 +342,7 @@ struct DumpNotifications : public RewriterBase::Listener {
     }
   }
   void notifyOperationInserted(Operation *op,
-                               OpBuilder::InsertPoint previous) override {
+                               ProgramPoint previous) override {
     llvm::outs() << "notifyOperationInserted: " << op->getName();
     if (!previous.isSet()) {
       llvm::outs() << ", was unlinked\n";

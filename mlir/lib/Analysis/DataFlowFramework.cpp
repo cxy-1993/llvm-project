@@ -26,10 +26,10 @@
 using namespace mlir;
 
 //===----------------------------------------------------------------------===//
-// GenericProgramPoint
+// GenericLatticeAnchor
 //===----------------------------------------------------------------------===//
 
-GenericProgramPoint::~GenericProgramPoint() = default;
+GenericLatticeAnchor::~GenericLatticeAnchor() = default;
 
 //===----------------------------------------------------------------------===//
 // AnalysisState
@@ -53,16 +53,16 @@ void AnalysisState::addDependency(ProgramPoint dependent,
 void AnalysisState::dump() const { print(llvm::errs()); }
 
 //===----------------------------------------------------------------------===//
-// ProgramPoint
+// LatticeAnchor
 //===----------------------------------------------------------------------===//
 
-void ProgramPoint::print(raw_ostream &os) const {
+void LatticeAnchor::print(raw_ostream &os) const {
   if (isNull()) {
     os << "<NULL POINT>";
     return;
   }
-  if (auto *programPoint = llvm::dyn_cast<GenericProgramPoint *>(*this))
-    return programPoint->print(os);
+  if (auto *LatticeAnchor = llvm::dyn_cast<GenericLatticeAnchor *>(*this))
+    return LatticeAnchor->print(os);
   if (auto *op = llvm::dyn_cast<Operation *>(*this))
     return op->print(os, OpPrintingFlags().skipRegions());
   if (auto value = llvm::dyn_cast<Value>(*this))
@@ -70,9 +70,9 @@ void ProgramPoint::print(raw_ostream &os) const {
   return get<Block *>()->print(os);
 }
 
-Location ProgramPoint::getLoc() const {
-  if (auto *programPoint = llvm::dyn_cast<GenericProgramPoint *>(*this))
-    return programPoint->getLoc();
+Location LatticeAnchor::getLoc() const {
+  if (auto *LatticeAnchor = llvm::dyn_cast<GenericLatticeAnchor *>(*this))
+    return LatticeAnchor->getLoc();
   if (auto *op = llvm::dyn_cast<Operation *>(*this))
     return op->getLoc();
   if (auto value = llvm::dyn_cast<Value>(*this))

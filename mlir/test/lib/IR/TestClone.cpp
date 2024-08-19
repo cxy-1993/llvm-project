@@ -8,6 +8,7 @@
 
 #include "TestOps.h"
 #include "mlir/IR/BuiltinOps.h"
+#include "mlir/IR/ProgramPoint.h"
 #include "mlir/Pass/Pass.h"
 
 using namespace mlir;
@@ -16,7 +17,7 @@ namespace {
 
 struct DumpNotifications : public OpBuilder::Listener {
   void notifyOperationInserted(Operation *op,
-                               OpBuilder::InsertPoint previous) override {
+                               ProgramPoint previous) override {
     llvm::outs() << "notifyOperationInserted: " << op->getName() << "\n";
   }
 };

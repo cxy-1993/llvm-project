@@ -46,7 +46,7 @@ void Executable::print(raw_ostream &os) const {
 void Executable::onUpdate(DataFlowSolver *solver) const {
   AnalysisState::onUpdate(solver);
 
-  if (auto *block = llvm::dyn_cast_if_present<Block *>(point)) {
+  if (auto *block = llvm::dyn_cast_if_present<Block *>(anchor)) {
     // Re-invoke the analyses on the block itself.
     for (DataFlowAnalysis *analysis : subscribers)
       solver->enqueue({block, analysis});
@@ -54,9 +54,9 @@ void Executable::onUpdate(DataFlowSolver *solver) const {
     for (DataFlowAnalysis *analysis : subscribers)
       for (Operation &op : *block)
         solver->enqueue({&op, analysis});
-  } else if (auto *programPoint = llvm::dyn_cast_if_present<GenericProgramPoint *>(point)) {
+  } else if (auto *latticeAnchor = llvm::dyn_cast_if_present<GenericLatticeAnchor*>(anchor)) {
     // Re-invoke the analysis on the successor block.
-    if (auto *edge = dyn_cast<CFGEdge>(programPoint)) {
+    if (auto *edge = dyn_cast<CFGEdge>(latticeAnchor)) {
       for (DataFlowAnalysis *analysis : subscribers)
         solver->enqueue({edge->getTo(), analysis});
     }
@@ -114,7 +114,7 @@ void CFGEdge::print(raw_ostream &os) const {
 
 DeadCodeAnalysis::DeadCodeAnalysis(DataFlowSolver &solver)
     : DataFlowAnalysis(solver) {
-  registerPointKind<CFGEdge>();
+  registerAnchorKind<CFGEdge>();
 }
 
 LogicalResult DeadCodeAnalysis::initialize(Operation *top) {
@@ -218,7 +218,7 @@ LogicalResult DeadCodeAnalysis::initializeRecursively(Operation *op) {
 void DeadCodeAnalysis::markEdgeLive(Block *from, Block *to) {
   auto *state = getOrCreate<Executable>(to);
   propagateIfChanged(state, state->setToLive());
-  auto *edgeState = getOrCreate<Executable>(getProgramPoint<CFGEdge>(from, to));
+  auto *edgeState = getOrCreate<Executable>(getLatticeAnchor<CFGEdge>(from, to));
   propagateIfChanged(edgeState, edgeState->setToLive());
 }
 

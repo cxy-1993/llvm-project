@@ -13,6 +13,7 @@
 #include "mlir/IR/BuiltinOps.h"
 #include "mlir/IR/IRMapping.h"
 #include "mlir/IR/Iterators.h"
+#include "mlir/IR/ProgramPoint.h"
 #include "mlir/Interfaces/FunctionInterfaces.h"
 #include "mlir/Rewrite/PatternApplicator.h"
 #include "llvm/ADT/ScopeExit.h"
@@ -55,12 +56,12 @@ static void logFailure(llvm::ScopedPrinter &os, StringRef fmt, Args &&...args) {
 
 /// Helper function that computes an insertion point where the given value is
 /// defined and can be used without a dominance violation.
-static OpBuilder::InsertPoint computeInsertPoint(Value value) {
+static ProgramPoint computeInsertPoint(Value value) {
   Block *insertBlock = value.getParentBlock();
   Block::iterator insertPt = insertBlock->begin();
   if (OpResult inputRes = dyn_cast<OpResult>(value))
     insertPt = ++inputRes.getOwner()->getIterator();
-  return OpBuilder::InsertPoint(insertBlock, insertPt);
+  return ProgramPoint(insertBlock, insertPt);
 }
 
 //===----------------------------------------------------------------------===//
@@ -529,8 +530,8 @@ public:
       // Note: `previousIt` cannot be passed because this is a delayed
       // notification and iterators into past IR state cannot be represented.
       listener->notifyOperationInserted(
-          op, /*previous=*/OpBuilder::InsertPoint(/*insertBlock=*/block,
-                                                  /*insertPt=*/{}));
+          op, /*previous=*/ProgramPoint(/*insertBlock=*/block,
+                                        /*insertPt=*/{}));
     }
   }
 
@@ -837,7 +838,7 @@ struct ConversionPatternRewriterImpl : public RewriterBase::Listener {
   /// Build an unresolved materialization operation given an output type and set
   /// of input operands.
   Value buildUnresolvedMaterialization(MaterializationKind kind,
-                                       OpBuilder::InsertPoint ip, Location loc,
+                                       ProgramPoint ip, Location loc,
                                        ValueRange inputs, Type outputType,
                                        const TypeConverter *converter);
 
@@ -847,7 +848,7 @@ struct ConversionPatternRewriterImpl : public RewriterBase::Listener {
 
   //// Notifies that an op was inserted.
   void notifyOperationInserted(Operation *op,
-                               OpBuilder::InsertPoint previous) override;
+                               ProgramPoint previous) override;
 
   /// Notifies that an op is about to be replaced with the given values.
   void notifyOpReplaced(Operation *op, ValueRange newValues);
@@ -1261,7 +1262,7 @@ Block *ConversionPatternRewriterImpl::applySignatureConversion(
       // Materialize a replacement value "out of thin air".
       Value repl = buildUnresolvedMaterialization(
           MaterializationKind::Source,
-          OpBuilder::InsertPoint(newBlock, newBlock->begin()), origArg.getLoc(),
+          ProgramPoint(newBlock, newBlock->begin()), origArg.getLoc(),
           /*inputs=*/ValueRange(),
           /*outputType=*/origArgType, converter);
       mapping.map(origArg, repl);
@@ -1287,7 +1288,7 @@ Block *ConversionPatternRewriterImpl::applySignatureConversion(
         newBlock->getArguments().slice(inputMap->inputNo, inputMap->size);
     Value argMat = buildUnresolvedMaterialization(
         MaterializationKind::Argument,
-        OpBuilder::InsertPoint(newBlock, newBlock->begin()), origArg.getLoc(),
+        ProgramPoint(newBlock, newBlock->begin()), origArg.getLoc(),
         /*inputs=*/replArgs, origArgType, converter);
     mapping.map(origArg, argMat);
     appendRewrite<ReplaceBlockArgRewrite>(block, origArg);
@@ -1330,7 +1331,7 @@ Block *ConversionPatternRewriterImpl::applySignatureConversion(
 /// Build an unresolved materialization operation given an output type and set
 /// of input operands.
 Value ConversionPatternRewriterImpl::buildUnresolvedMaterialization(
-    MaterializationKind kind, OpBuilder::InsertPoint ip, Location loc,
+    MaterializationKind kind, ProgramPoint ip, Location loc,
     ValueRange inputs, Type outputType, const TypeConverter *converter) {
   // Avoid materializing an unnecessary cast.
   if (inputs.size() == 1 && inputs.front().getType() == outputType)
@@ -1350,7 +1351,7 @@ Value ConversionPatternRewriterImpl::buildUnresolvedMaterialization(
 // Rewriter Notification Hooks
 
 void ConversionPatternRewriterImpl::notifyOperationInserted(
-    Operation *op, OpBuilder::InsertPoint previous) {
+    Operation *op, ProgramPoint previous) {
   LLVM_DEBUG({
     logger.startLine() << "** Insert  : '" << op->getName() << "'(" << op
                        << ")\n";

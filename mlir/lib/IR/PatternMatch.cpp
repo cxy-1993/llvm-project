@@ -10,6 +10,7 @@
 #include "mlir/Config/mlir-config.h"
 #include "mlir/IR/IRMapping.h"
 #include "mlir/IR/Iterators.h"
+#include "mlir/IR/ProgramPoint.h"
 #include "mlir/IR/RegionKindInterface.h"
 #include "llvm/ADT/SmallPtrSet.h"
 
@@ -411,7 +412,7 @@ void RewriterBase::moveOpBefore(Operation *op, Block *block,
   op->moveBefore(block, iterator);
   if (listener)
     listener->notifyOperationInserted(
-        op, /*previous=*/InsertPoint(currentBlock, nextIterator));
+        op, /*previous=*/ProgramPoint(currentBlock, nextIterator));
 }
 
 void RewriterBase::moveOpAfter(Operation *op, Operation *existingOp) {

@@ -10,6 +10,7 @@
 #define MLIR_IR_BUILDERS_H
 
 #include "mlir/IR/OpDefinition.h"
+#include "mlir/IR/ProgramPoint.h"
 #include "llvm/Support/Compiler.h"
 #include <optional>
 
@@ -210,7 +211,6 @@ protected:
 /// automatically inserted at an insertion point. The builder is copyable.
 class OpBuilder : public Builder {
 public:
-  class InsertPoint;
   struct Listener;
 
   /// Create a builder with the given context.
@@ -299,7 +299,7 @@ public:
     ///   is empty.
     ///
     /// Note: Creating an (unlinked) op does not trigger this notification.
-    virtual void notifyOperationInserted(Operation *op, InsertPoint previous) {}
+    virtual void notifyOperationInserted(Operation *op, ProgramPoint previous) {}
 
     /// Notify the listener that the specified block was inserted.
     ///
@@ -327,27 +327,6 @@ public:
   // Insertion Point Management
   //===--------------------------------------------------------------------===//
 
-  /// This class represents a saved insertion point.
-  class InsertPoint {
-  public:
-    /// Creates a new insertion point which doesn't point to anything.
-    InsertPoint() = default;
-
-    /// Creates a new insertion point at the given location.
-    InsertPoint(Block *insertBlock, Block::iterator insertPt)
-        : block(insertBlock), point(insertPt) {}
-
-    /// Returns true if this insert point is set.
-    bool isSet() const { return (block != nullptr); }
-
-    Block *getBlock() const { return block; }
-    Block::iterator getPoint() const { return point; }
-
-  private:
-    Block *block = nullptr;
-    Block::iterator point;
-  };
-
   /// RAII guard to reset the insertion point of the builder when destroyed.
   class InsertionGuard {
   public:
@@ -374,7 +353,7 @@ public:
 
   private:
     OpBuilder *builder;
-    OpBuilder::InsertPoint ip;
+    ProgramPoint ip;
   };
 
   /// Reset the insertion point to no location.  Creating an operation without a
@@ -386,12 +365,12 @@ public:
   }
 
   /// Return a saved insertion point.
-  InsertPoint saveInsertionPoint() const {
-    return InsertPoint(getInsertionBlock(), getInsertionPoint());
+  ProgramPoint saveInsertionPoint() const {
+    return ProgramPoint(getInsertionBlock(), getInsertionPoint());
   }
 
   /// Restore the insert point to a previously saved point.
-  void restoreInsertionPoint(InsertPoint ip) {
+  void restoreInsertionPoint(ProgramPoint ip) {
     if (ip.isSet())
       setInsertionPoint(ip.getBlock(), ip.getPoint());
     else

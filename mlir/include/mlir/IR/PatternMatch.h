@@ -11,6 +11,7 @@
 
 #include "mlir/IR/Builders.h"
 #include "mlir/IR/BuiltinOps.h"
+#include "mlir/IR/ProgramPoint.h"
 #include "llvm/ADT/FunctionExtras.h"
 #include "llvm/Support/TypeName.h"
 #include <optional>
@@ -463,7 +464,7 @@ public:
   struct ForwardingListener : public RewriterBase::Listener {
     ForwardingListener(OpBuilder::Listener *listener) : listener(listener) {}
 
-    void notifyOperationInserted(Operation *op, InsertPoint previous) override {
+    void notifyOperationInserted(Operation *op, ProgramPoint previous) override {
       listener->notifyOperationInserted(op, previous);
     }
     void notifyBlockInserted(Block *block, Region *previous,

@@ -37,6 +37,7 @@
 #include "mlir/IR/BuiltinTypeInterfaces.h"
 #include "mlir/IR/PatternMatch.h"
 #include "mlir/IR/TypeUtilities.h"
+#include "mlir/IR/ProgramPoint.h"
 #include "mlir/Interfaces/TilingInterface.h"
 #include "mlir/Support/LLVM.h"
 #include "mlir/Support/TypeID.h"
@@ -289,7 +290,7 @@ public:
 
 private:
   void notifyOperationInserted(Operation *op,
-                               OpBuilder::InsertPoint previous) override {
+                               ProgramPoint previous) override {
     ForwardingListener::notifyOperationInserted(op, previous);
     // We only care about newly created ops.
     if (previous.isSet())

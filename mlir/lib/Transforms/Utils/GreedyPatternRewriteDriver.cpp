@@ -16,6 +16,7 @@
 #include "mlir/IR/Action.h"
 #include "mlir/IR/Matchers.h"
 #include "mlir/IR/Verifier.h"
+#include "mlir/IR/ProgramPoint.h"
 #include "mlir/Interfaces/SideEffectInterfaces.h"
 #include "mlir/Rewrite/PatternApplicator.h"
 #include "mlir/Transforms/FoldUtils.h"
@@ -142,7 +143,7 @@ protected:
   }
 
   void notifyOperationInserted(Operation *op,
-                               OpBuilder::InsertPoint previous) override {
+                               ProgramPoint previous) override {
     RewriterBase::ForwardingListener::notifyOperationInserted(op, previous);
     invalidateFingerPrint(op->getParentOp());
   }
@@ -339,7 +340,7 @@ protected:
   /// worklist as needed: The operation is enqueued depending on scope and
   /// strict mode.
   void notifyOperationInserted(Operation *op,
-                               OpBuilder::InsertPoint previous) override;
+                               ProgramPoint previous) override;
 
   /// Notify the driver that the specified operation was removed. Update the
   /// worklist as needed: The operation and its children are removed from the
@@ -669,7 +670,7 @@ void GreedyPatternRewriteDriver::notifyBlockErased(Block *block) {
 }
 
 void GreedyPatternRewriteDriver::notifyOperationInserted(
-    Operation *op, OpBuilder::InsertPoint previous) {
+    Operation *op, ProgramPoint previous) {
   LLVM_DEBUG({
     logger.startLine() << "** Insert  : '" << op->getName() << "'(" << op
                        << ")\n";

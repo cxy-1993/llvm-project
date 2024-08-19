@@ -34,7 +34,7 @@ void AbstractSparseLattice::onUpdate(DataFlowSolver *solver) const {
   AnalysisState::onUpdate(solver);
 
   // Push all users of the value to the queue.
-  for (Operation *user : point.get<Value>().getUsers())
+  for (Operation *user : anchor.get<Value>().getUsers())
     for (DataFlowAnalysis *analysis : useDefSubscribers)
       solver->enqueue({user, analysis});
 }
@@ -46,7 +46,7 @@ void AbstractSparseLattice::onUpdate(DataFlowSolver *solver) const {
 AbstractSparseForwardDataFlowAnalysis::AbstractSparseForwardDataFlowAnalysis(
     DataFlowSolver &solver)
     : DataFlowAnalysis(solver) {
-  registerPointKind<CFGEdge>();
+  registerAnchorKind<CFGEdge>();
 }
 
 LogicalResult
@@ -209,7 +209,7 @@ void AbstractSparseForwardDataFlowAnalysis::visitBlock(Block *block) {
     // If the edge from the predecessor block to the current block is not live,
     // bail out.
     auto *edgeExecutable =
-        getOrCreate<Executable>(getProgramPoint<CFGEdge>(predecessor, block));
+        getOrCreate<Executable>(getLatticeAnchor<CFGEdge>(predecessor, block));
     edgeExecutable->blockContentSubscribe(this);
     if (!edgeExecutable->isLive())
       continue;

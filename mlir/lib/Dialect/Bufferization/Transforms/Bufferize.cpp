@@ -18,6 +18,7 @@
 #include "mlir/Dialect/MemRef/IR/MemRef.h"
 #include "mlir/IR/Diagnostics.h"
 #include "mlir/IR/Operation.h"
+#include "mlir/IR/ProgramPoint.h"
 #include "mlir/Interfaces/ControlFlowInterfaces.h"
 #include "mlir/Interfaces/SideEffectInterfaces.h"
 #include "mlir/Pass/PassManager.h"
@@ -360,7 +361,7 @@ protected:
     toMemrefOps.erase(op);
   }
 
-  void notifyOperationInserted(Operation *op, InsertPoint previous) override {
+  void notifyOperationInserted(Operation *op, ProgramPoint previous) override {
     // We only care about newly created ops.
     if (previous.isSet())
       return;

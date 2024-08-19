@@ -143,7 +143,7 @@ private:
 /// This program point represents a control-flow edge between a block and one
 /// of its successors.
 class CFGEdge
-    : public GenericProgramPointBase<CFGEdge, std::pair<Block *, Block *>> {
+    : public GenericLatticeAnchorBase<CFGEdge, std::pair<Block *, Block *>> {
 public:
   using Base::Base;
 
